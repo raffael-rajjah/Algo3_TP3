@@ -155,8 +155,36 @@ List* list_pop_back(List* l){
 /*-----------------------------------------------------------------*/
 
 List* list_insert_at(List* l, int p, int v) {
-	(void)v;
-	(void)p;
+
+	LinkedElement* currentElement = l->sentinel->previous;
+
+	for (int i = 0; i < p; i++){
+		currentElement = currentElement->next;
+	}
+
+	LinkedElement* newElement = malloc(sizeof(LinkedElement));
+
+	newElement->value = v;
+	newElement->next = currentElement;
+
+	if(currentElement == l->sentinel){
+		newElement->previous  = l->sentinel->next;
+		l->sentinel->next = newElement;
+
+		if(l->size == 0){
+			l->sentinel->previous = newElement;
+		}
+	}
+	else{
+		newElement->previous = currentElement->previous;
+		currentElement->previous->next = newElement;
+	}
+
+
+	l->size++;
+
+
+
 	return l;
 }
 
