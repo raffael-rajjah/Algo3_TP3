@@ -50,6 +50,8 @@ List* list_create() {
 List* list_push_back(List* l, int v) {
 	LinkedElement* newElement = malloc(sizeof(LinkedElement));
 
+	l->sentinel->next->next = newElement;
+
 	newElement->next = l->sentinel;
 	newElement->previous = l->sentinel->next;
 	newElement->value = v;
@@ -67,7 +69,21 @@ List* list_push_back(List* l, int v) {
 /*-----------------------------------------------------------------*/
 
 void list_delete(ptrList *l) {
-	*l=NULL;
+	
+	LinkedElement* currentElement = (*l)->sentinel->previous;
+
+	while (currentElement != (*l)->sentinel){
+		LinkedElement* f = currentElement;
+		currentElement = currentElement->next;
+		free(f);		
+	}
+
+	free((*l)->sentinel);
+	
+	free(*l);
+	*l = NULL;
+	
+
 }
 
 /*-----------------------------------------------------------------*/
@@ -128,21 +144,24 @@ int list_at(const List* l, int p) {
 /*-----------------------------------------------------------------*/
 
 bool list_is_empty(const List* l) {
-	(void)l;
-	return false;
+	return l->size == 0;
 }
 
 /*-----------------------------------------------------------------*/
 
 int list_size(const List* l) {
-	(void)l;
-	return 0;
+	return l->size;
 }
 
 /*-----------------------------------------------------------------*/
 
 List* list_map(List* l, SimpleFunctor f) {
-
+	LinkedElement* currentElement = l->sentinel->previous;
+	while (currentElement != l->sentinel){
+		currentElement->value = f(currentElement->value);
+		currentElement = currentElement->next;
+	}
+	
 	return l;
 }
 
