@@ -111,26 +111,44 @@ List* list_push_front(List* l, int v) {
 /*-----------------------------------------------------------------*/
 
 int list_front(const List* l) {
-	(void)l;
-	return 0;
+	return l->sentinel->previous->value;
 }
 
 /*-----------------------------------------------------------------*/
 
 int list_back(const List* l) {
-	(void)l;
-	return 0;
+	return l->sentinel->next->value;
 }
 
 /*-----------------------------------------------------------------*/
 
 List* list_pop_front(List* l) {
+
+	LinkedElement* firstElement = l->sentinel->previous;
+
+	firstElement->next->previous = l->sentinel;
+	l->sentinel->previous = firstElement->next;
+
+	free(firstElement);
+
+	l->size--;
+
 	return l;
 }
 
 /*-----------------------------------------------------------------*/
 
 List* list_pop_back(List* l){
+
+	LinkedElement* lastElement = l->sentinel->next;
+
+	lastElement->previous->next = l->sentinel;
+	l->sentinel->next = lastElement->previous;
+
+	free(lastElement);
+
+	l->size--;
+
 	return l;
 }
 
