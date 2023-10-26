@@ -50,18 +50,18 @@ List* list_create() {
 List* list_push_back(List* l, int v) {
 	LinkedElement* newElement = malloc(sizeof(LinkedElement));
 
-	l->sentinel->next->next = newElement;
-
 	newElement->next = l->sentinel;
 	newElement->previous = l->sentinel->next;
 	newElement->value = v;
 
-	l->size++;
+	l->sentinel->next->next = newElement;
+
 	l->sentinel->next = newElement;
 	if(l->sentinel->previous == l->sentinel){
 		l->sentinel->previous = newElement;
 	}
 
+	l->size++;
 
 	return l;
 }
@@ -79,7 +79,7 @@ void list_delete(ptrList *l) {
 	}
 
 	free((*l)->sentinel);
-	
+
 	free(*l);
 	*l = NULL;
 	
@@ -89,7 +89,22 @@ void list_delete(ptrList *l) {
 /*-----------------------------------------------------------------*/
 
 List* list_push_front(List* l, int v) {
-	(void)v;
+	
+	LinkedElement* newElement = malloc(sizeof(LinkedElement));
+	
+	newElement->value = v;
+	newElement->previous = l->sentinel;
+	newElement->next = l->sentinel->previous;
+
+	l->sentinel->previous->previous = newElement;
+
+	l->sentinel->previous = newElement;
+	if(l->sentinel->next == l->sentinel){
+		l->sentinel->next = newElement;
+	}
+
+	l->size++;
+
 	return l;
 }
 
@@ -167,8 +182,15 @@ List* list_map(List* l, SimpleFunctor f) {
 
 
 List* list_reduce(List* l, ReduceFunctor f, void *userData) {
-	(void)f;
-	(void)userData;
+
+	LinkedElement* currentElement = l->sentinel->previous;
+
+	while (currentElement != l->sentinel){
+		f(currentElement->value, userData);
+		currentElement = currentElement->next;
+	}
+	
+
 	return l;
 }
 
