@@ -169,15 +169,21 @@ List* list_insert_at(List* l, int p, int v) {
 
 	if(currentElement == l->sentinel){
 		newElement->previous  = l->sentinel->next;
-		l->sentinel->next = newElement;
 
 		if(l->size == 0){
 			l->sentinel->previous = newElement;
 		}
+		else{
+			l->sentinel->next->next = newElement;
+
+		}
+		
+		l->sentinel->next = newElement;
 	}
 	else{
 		newElement->previous = currentElement->previous;
 		currentElement->previous->next = newElement;
+		currentElement->previous = newElement;
 	}
 
 
