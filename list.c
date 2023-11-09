@@ -13,6 +13,12 @@
 
 #include "list.h"
 
+typedef struct s_SubList{
+	int value;
+	struct s_SubList* previous;
+	struct s_SubList* next;
+} SubList;
+
 typedef struct s_LinkedElement {
 	int value;
 	struct s_LinkedElement* previous;
@@ -197,15 +203,46 @@ List* list_insert_at(List* l, int p, int v) {
 /*-----------------------------------------------------------------*/
 
 List* list_remove_at(List* l, int p) {
-	(void)p;
+	LinkedElement* currentElement = l->sentinel->previous;
+
+	for (int i = 0; i < p; i++){
+		currentElement = currentElement->next;
+	}
+
+	if(currentElement->previous == l->sentinel){
+		l->sentinel->previous = currentElement->next;
+	}
+
+	else{
+		currentElement->previous->next = currentElement->next;
+	}
+	
+
+
+	if (currentElement->next == l->sentinel){
+		l->sentinel->next = currentElement->previous;
+	}
+	
+	else{
+		currentElement->next->previous = currentElement->previous;
+	}
+
+	// free(currentElement);
+	l->size--;
+
 	return l;
 }
 
 /*-----------------------------------------------------------------*/
 
 int list_at(const List* l, int p) {
-	(void)l;
-	return p;
+	LinkedElement* currentElement = l->sentinel->previous;
+
+	for (int i = 0; i < p; i++){
+		currentElement = currentElement->next;
+	}
+
+	return currentElement->value;
 }
 
 /*-----------------------------------------------------------------*/
@@ -244,6 +281,57 @@ List* list_reduce(List* l, ReduceFunctor f, void *userData) {
 	
 
 	return l;
+
+}
+
+
+SubList list_split(SubList l){
+	SubList splitter;
+
+	SubList* currentElement1 = &l;
+	SubList* currentElement2 = &(l.next);
+
+	while(currentElement2->next != NULL){
+		
+		currentElement1 = currentElement1->next;
+		currentElement2 = currentElement2->next->next;
+
+	}
+
+	splitter.previous = currentElement1;
+	splitter.next = currentElement1->next;
+
+	SubList* temp = currentElement1->next;
+	currentElement1->next = &splitter;
+	temp->previous = &splitter;
+
+	return splitter;
+	
+
+}
+
+SubList list_merge(SubList leftlist, SubList rightlist, OrderFunctor f){
+	if (f(leftlist.value, rightlist.value)){
+
+		leftlist.next = &rightlist;
+		rightlist.previous = &leftlist;
+
+		return leftlist;
+	}
+
+	else{
+
+		rightlist.next = &leftlist;
+		leftlist.previous = &rightlist;
+
+		return rightlist;
+	}
+	
+}
+
+
+SubList list_mergesort(SubList l, OrderFunctor f){
+	l = list_split(l);
 }
 
 /*-----------------------------------------------------------------*/
