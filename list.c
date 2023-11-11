@@ -14,7 +14,7 @@
 #include "list.h"
 
 typedef struct s_SubList{
-	int value;
+	int* value;
 	struct s_SubList* previous;
 	struct s_SubList* next;
 } SubList;
@@ -300,6 +300,8 @@ SubList list_split(SubList l){
 
 	splitter.previous = currentElement1;
 	splitter.next = currentElement1->next;
+	splitter.value = NULL;
+
 
 	SubList* temp = currentElement1->next;
 	currentElement1->next = &splitter;
@@ -312,18 +314,34 @@ SubList list_split(SubList l){
 
 SubList list_merge(SubList leftlist, SubList rightlist, OrderFunctor f){
 	
-	if (f(leftlist.value, rightlist.value)){
 
-		leftlist.next = &rightlist;
-		rightlist.previous = &leftlist;
+	if(&leftlist == NULL || leftlist.value == NULL){
+		return rightlist;
+
+	}
+
+	if(&rightlist == NULL|| rightlist.value == NULL){
+		return leftlist;
+	}
+
+	if (f(*(leftlist.value), *(rightlist.value))){
+
+		SubList lefttmp = list_merge(*leftlist.next, rightlist, f);
+		leftlist.next = &lefttmp;
+
+		leftlist.next->previous = &leftlist;
+		leftlist.previous = NULL;
 
 		return leftlist;
 	}
 
 	else {
 
-		rightlist.next = &leftlist;
-		leftlist.previous = &rightlist;
+		SubList righttmp = list_merge(*leftlist.next, rightlist, f);
+		rightlist.next = &righttmp;
+
+		rightlist.next->previous = &rightlist;
+		rightlist.previous = NULL;
 
 		return rightlist;
 	}
@@ -331,14 +349,32 @@ SubList list_merge(SubList leftlist, SubList rightlist, OrderFunctor f){
 }
 
 
-// SubList list_mergesort(SubList l, OrderFunctor f){
-// 	l = list_split(l);
-
-	
-	
+SubList list_mergesort(SubList l, OrderFunctor f){
 	
 
-// }
+	if(l.next == NULL || l.next->next == NULL || l.next->value == NULL || l.next->next->value == NULL){
+		return l;
+	}
+	
+
+	SubList splittedSubList = list_split(l);
+
+	SubList headRightList = *splittedSubList.next;
+	SubList headLeftList = *splittedSubList.previous;
+
+	while (headLeftList.previous != NULL)	{
+		headLeftList = *headLeftList.previous;
+
+	}
+	
+	headLeftList = list_mergesort(headLeftList, f);
+	headRightList = list_mergesort(headRightList, f);
+
+	return list_merge(headLeftList, headRightList, f);
+	
+	
+
+}
 
 /*-----------------------------------------------------------------*/
 
@@ -346,13 +382,13 @@ List* list_sort(List* l, OrderFunctor f) {
 
 	(void)f;
 
-	LinkedElement* currentElement = l->sentinel->previous;
+	LinkedElement* currentElement = l->sentinel->next;
 	SubList* prev = malloc(sizeof(SubList));
 	SubList* headSubList = prev;
 
 	prev->previous = NULL;
 	prev->next = NULL;
-	prev->value = currentElement->value;
+	prev->value = &currentElement->value;
 
 	currentElement = currentElement->next;
 
@@ -362,7 +398,7 @@ List* list_sort(List* l, OrderFunctor f) {
 
 		newSubList->next = NULL;
 		newSubList->previous = prev;
-		newSubList->value = currentElement->value;
+		newSubList->value = &currentElement->value;
 
 		prev->next = newSubList;
 
@@ -371,11 +407,17 @@ List* list_sort(List* l, OrderFunctor f) {
 
 	}
 	
+
+
+
+
+	SubList sortedSubList = list_mergesort(*headSubList, f);
+
 	SubList* currentSubList = headSubList;	
 
-	SubList splitted = list_split(*headSubList);
+	// SubList splitted = list_split(*headSubList);
 
-	currentSubList = splitted.next;
+	currentSubList = &sortedSubList;
 
 	// print sublist
 	printf("value sublist : ");
@@ -383,7 +425,7 @@ List* list_sort(List* l, OrderFunctor f) {
 
 	while (currentSubList != NULL)
 	{
-		printf("%d ", currentSubList->value);
+		printf("%d ", *currentSubList->value);
 		currentSubList = currentSubList->next;
 	}
 	
