@@ -57,14 +57,14 @@ List* list_push_back(List* l, int v) {
 	LinkedElement* newElement = malloc(sizeof(LinkedElement));
 
 	newElement->next = l->sentinel;
-	newElement->previous = l->sentinel->next;
+	newElement->previous = l->sentinel->previous;
 	newElement->value = v;
 
-	l->sentinel->next->next = newElement;
+	l->sentinel->previous->next = newElement;
 
-	l->sentinel->next = newElement;
-	if(l->sentinel->previous == l->sentinel){
-		l->sentinel->previous = newElement;
+	l->sentinel->previous = newElement;
+	if(l->sentinel->next == l->sentinel){
+		l->sentinel->next = newElement;
 	}
 
 	l->size++;
@@ -76,7 +76,7 @@ List* list_push_back(List* l, int v) {
 
 void list_delete(ptrList *l) {
 	
-	LinkedElement* currentElement = (*l)->sentinel->previous;
+	LinkedElement* currentElement = (*l)->sentinel->next;
 
 	while (currentElement != (*l)->sentinel){
 		LinkedElement* f = currentElement;
@@ -100,13 +100,13 @@ List* list_push_front(List* l, int v) {
 	
 	newElement->value = v;
 	newElement->previous = l->sentinel;
-	newElement->next = l->sentinel->previous;
+	newElement->next = l->sentinel->next;
 
-	l->sentinel->previous->previous = newElement;
+	l->sentinel->next->previous = newElement;
 
-	l->sentinel->previous = newElement;
-	if(l->sentinel->next == l->sentinel){
-		l->sentinel->next = newElement;
+	l->sentinel->next = newElement;
+	if(l->sentinel->previous == l->sentinel){
+		l->sentinel->previous = newElement;
 	}
 
 	l->size++;
@@ -117,23 +117,23 @@ List* list_push_front(List* l, int v) {
 /*-----------------------------------------------------------------*/
 
 int list_front(const List* l) {
-	return l->sentinel->previous->value;
+	return l->sentinel->next->value;
 }
 
 /*-----------------------------------------------------------------*/
 
 int list_back(const List* l) {
-	return l->sentinel->next->value;
+	return l->sentinel->previous->value;
 }
 
 /*-----------------------------------------------------------------*/
 
 List* list_pop_front(List* l) {
 
-	LinkedElement* firstElement = l->sentinel->previous;
+	LinkedElement* firstElement = l->sentinel->next;
 
 	firstElement->next->previous = l->sentinel;
-	l->sentinel->previous = firstElement->next;
+	l->sentinel->next = firstElement->next;
 
 	free(firstElement);
 
@@ -146,10 +146,10 @@ List* list_pop_front(List* l) {
 
 List* list_pop_back(List* l){
 
-	LinkedElement* lastElement = l->sentinel->next;
+	LinkedElement* lastElement = l->sentinel->previous;
 
 	lastElement->previous->next = l->sentinel;
-	l->sentinel->next = lastElement->previous;
+	l->sentinel->previous = lastElement->previous;
 
 	free(lastElement);
 
@@ -162,7 +162,7 @@ List* list_pop_back(List* l){
 
 List* list_insert_at(List* l, int p, int v) {
 
-	LinkedElement* currentElement = l->sentinel->previous;
+	LinkedElement* currentElement = l->sentinel->next;
 
 	for (int i = 0; i < p; i++){
 		currentElement = currentElement->next;
@@ -174,17 +174,17 @@ List* list_insert_at(List* l, int p, int v) {
 	newElement->next = currentElement;
 
 	if(currentElement == l->sentinel){
-		newElement->previous  = l->sentinel->next;
+		newElement->previous  = l->sentinel->previous;
 
 		if(l->size == 0){
-			l->sentinel->previous = newElement;
+			l->sentinel->next = newElement;
 		}
 		else{
-			l->sentinel->next->next = newElement;
+			l->sentinel->previous->next = newElement;
 
 		}
 		
-		l->sentinel->next = newElement;
+		l->sentinel->previous = newElement;
 	}
 	else{
 		newElement->previous = currentElement->previous;
@@ -203,14 +203,14 @@ List* list_insert_at(List* l, int p, int v) {
 /*-----------------------------------------------------------------*/
 
 List* list_remove_at(List* l, int p) {
-	LinkedElement* currentElement = l->sentinel->previous;
+	LinkedElement* currentElement = l->sentinel->next;
 
 	for (int i = 0; i < p; i++){
 		currentElement = currentElement->next;
 	}
 
 	if(currentElement->previous == l->sentinel){
-		l->sentinel->previous = currentElement->next;
+		l->sentinel->next = currentElement->next;
 	}
 
 	else{
@@ -220,7 +220,7 @@ List* list_remove_at(List* l, int p) {
 
 
 	if (currentElement->next == l->sentinel){
-		l->sentinel->next = currentElement->previous;
+		l->sentinel->previous = currentElement->previous;
 	}
 	
 	else{
@@ -236,7 +236,7 @@ List* list_remove_at(List* l, int p) {
 /*-----------------------------------------------------------------*/
 
 int list_at(const List* l, int p) {
-	LinkedElement* currentElement = l->sentinel->previous;
+	LinkedElement* currentElement = l->sentinel->next;
 
 	for (int i = 0; i < p; i++){
 		currentElement = currentElement->next;
@@ -260,7 +260,7 @@ int list_size(const List* l) {
 /*-----------------------------------------------------------------*/
 
 List* list_map(List* l, SimpleFunctor f) {
-	LinkedElement* currentElement = l->sentinel->previous;
+	LinkedElement* currentElement = l->sentinel->next;
 	while (currentElement != l->sentinel){
 		currentElement->value = f(currentElement->value);
 		currentElement = currentElement->next;
@@ -272,7 +272,7 @@ List* list_map(List* l, SimpleFunctor f) {
 
 List* list_reduce(List* l, ReduceFunctor f, void *userData) {
 
-	LinkedElement* currentElement = l->sentinel->previous;
+	LinkedElement* currentElement = l->sentinel->next;
 
 	while (currentElement != l->sentinel){
 		f(currentElement->value, userData);
@@ -289,7 +289,7 @@ SubList list_split(SubList l){
 	SubList splitter;
 
 	SubList* currentElement1 = &l;
-	SubList* currentElement2 = &(l.next);
+	SubList* currentElement2 = l.next;
 
 	while(currentElement2->next != NULL){
 		
@@ -311,6 +311,7 @@ SubList list_split(SubList l){
 }
 
 SubList list_merge(SubList leftlist, SubList rightlist, OrderFunctor f){
+	
 	if (f(leftlist.value, rightlist.value)){
 
 		leftlist.next = &rightlist;
@@ -319,7 +320,7 @@ SubList list_merge(SubList leftlist, SubList rightlist, OrderFunctor f){
 		return leftlist;
 	}
 
-	else{
+	else {
 
 		rightlist.next = &leftlist;
 		leftlist.previous = &rightlist;
@@ -330,14 +331,63 @@ SubList list_merge(SubList leftlist, SubList rightlist, OrderFunctor f){
 }
 
 
-SubList list_mergesort(SubList l, OrderFunctor f){
-	l = list_split(l);
-}
+// SubList list_mergesort(SubList l, OrderFunctor f){
+// 	l = list_split(l);
+
+	
+	
+	
+
+// }
 
 /*-----------------------------------------------------------------*/
 
 List* list_sort(List* l, OrderFunctor f) {
+
 	(void)f;
+
+	LinkedElement* currentElement = l->sentinel->previous;
+	SubList* prev = malloc(sizeof(SubList));
+	SubList* headSubList = prev;
+
+	prev->previous = NULL;
+	prev->next = NULL;
+	prev->value = currentElement->value;
+
+	currentElement = currentElement->next;
+
+	while (currentElement != l->sentinel)
+	{
+		SubList* newSubList = malloc(sizeof(SubList));
+
+		newSubList->next = NULL;
+		newSubList->previous = prev;
+		newSubList->value = currentElement->value;
+
+		prev->next = newSubList;
+
+		prev = newSubList;
+		currentElement = currentElement->next;
+
+	}
+	
+	SubList* currentSubList = headSubList;	
+
+	SubList splitted = list_split(*headSubList);
+
+	currentSubList = splitted.next;
+
+	// print sublist
+	printf("value sublist : ");
+
+
+	while (currentSubList != NULL)
+	{
+		printf("%d ", currentSubList->value);
+		currentSubList = currentSubList->next;
+	}
+	
+
 	return l;
 }
 
